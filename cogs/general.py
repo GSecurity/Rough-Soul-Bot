@@ -71,6 +71,9 @@ class General(commands.Cog):
                                      '**purge** _Clean the x last messages in the actual text channel_\n'
                                      '**kick** _Kick the member_\n'
                                      '**ban** _Ban the member_\n',
+                                     '**move_all** _Move current voice member to target voice channel_\n',
+                                     '**move_to_me** _Move member to your voice channel_\n',
+                                     '**move_role** _Move voice members that have the role to target voice channel_\n',
                                      False]
             embed_message2_field1 = ['**__Administrator:__**',
                                      '**leave_server** _Allow administrators to make Bot leave the server_\n',
