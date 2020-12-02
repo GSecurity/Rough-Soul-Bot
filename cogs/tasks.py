@@ -41,7 +41,6 @@ class Tasks(commands.Cog):
                 try:
                     fut.result()
                 except:
-                    print('I WAS HERE!!!')
                     pass
 
 

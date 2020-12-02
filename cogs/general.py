@@ -138,6 +138,9 @@ class General(commands.Cog):
                        "- Updating the help function content (~40%)\n"
                        "- Added kick command\n"
                        "- Added ban command\n"
+                       "- Added move_all command\n"
+                       "- Added move_to_me command\n"
+                       "- Added move_role command\n"
                        "\n"
                        "As the bot keeps evolving in the future, so will the current and new features.\n")
 
@@ -215,9 +218,11 @@ class General(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def leave(self, ctx):
-        await ctx.voice_client.disconnect()
-        print('Disconnected from voice channel.')
-    # Play command
+        if ctx.voice_client:
+            await ctx.voice_client.disconnect()
+            print('Disconnected from voice channel.')
+        else:
+            print('Bot is not in a voice channel')
 
 
 def setup(bot):
