@@ -261,23 +261,23 @@ class Admin(commands.Cog):
     @commands.command(name='add_task', aliases=['at'], hidden=True)
     @commands.guild_only()
     @has_admin_role_or_higher()
-    async def add_task(self, ctx, task_name, message, text_channel_name, month_value, day_value, hours_value, minutes_value,
-                       voice_channel_name=None):
+    async def add_task(self, ctx, task_name, message, text_channel: discord.TextChannel, month_value, day_value,
+                       hours_value, minutes_value, voice_channel_name=None):
         try:
-            text_channel_id = ''
+            # text_channel = ''
             voice_channel_id = ''
             voice_channel_enabled = ''
             text_channels = ctx.guild.text_channels
             voice_channels = ctx.guild.voice_channels
             tasks_data = self.read_tasks(ctx.guild.id)
-            # TODO Check that min. of 1min is between tasks time
-            if await self.check_add_task_params(ctx, task_name, message, text_channel_name, month_value,
+            if await self.check_add_task_params(ctx, task_name, message, text_channel.name, month_value,
                                                 day_value, hours_value, minutes_value, text_channels, voice_channels,
                                                 voice_channel_name):
                 # Check if a task already exists with this name
                 if any(task.get('task_name', False) == task_name for task in tasks_data):
-                    text_channel_id = next(text_channel.id for text_channel in text_channels
-                                           if text_channel_name == text_channel.name)
+                    # text_channel.id
+                    # text_channel_id = next(text_channel.id for text_channel in text_channels
+                    #                        if text_channel.name == text_channel.name)
                     if voice_channel_name is None:
                         voice_channel_id = 1234
                         voice_channel_enabled = 0
@@ -294,11 +294,11 @@ class Admin(commands.Cog):
                         voice_channel_id = next(voice_channel.id for voice_channel in voice_channels
                                                 if voice_channel_name == voice_channel.name)
                         voice_channel_enabled = 1
-                    if text_channel_id and voice_channel_id:
+                    if text_channel.id and voice_channel_id:
                         for data in tasks_data:
                             if data['task_name'] == task_name:
                                 data['message'] = message
-                                data['text_channel_id'] = text_channel_id
+                                data['text_channel_id'] = text_channel.id
                                 data['voice_channel'] = voice_channel_enabled
                                 data['voice_channel_id'] = voice_channel_id
                                 data['month'] = int(month_value)
@@ -317,10 +317,11 @@ class Admin(commands.Cog):
                     if len(tasks_data) == 5:
                         await ctx.send('You already have the maximum allowed number of tasks.')
                         raise admins.MaxTasksReachedException()
-                    text_channel_id = next(text_channel.id for text_channel in text_channels
-                                           if text_channel_name == text_channel.name)
+                    # text_channel.id
+                    # text_channel.id = next(text_channel.id for text_channel in text_channels
+                    #                        if text_channel.name == text_channel.name)
                     if voice_channel_name is None:
-                        voice_channel_id = 0
+                        voice_channel_id = 1234
                         voice_channel_enabled = 0
                     else:
                         # Here we go through the tasks and check that if there is multiple voice announcement,
@@ -335,11 +336,11 @@ class Admin(commands.Cog):
                         voice_channel_id = next(voice_channel.id for voice_channel in voice_channels
                                                 if voice_channel_name == voice_channel.name)
                         voice_channel_enabled = 1
-                    if text_channel_id and voice_channel_id:
+                    if text_channel.id and voice_channel_id:
                         tasks_data.append(
                             {'task_name': task_name,
                              'message': message,
-                             'text_channel_id': text_channel_id,
+                             'text_channel_id': text_channel.id,
                              'voice_channel': voice_channel_enabled,
                              'voice_channel_id': voice_channel_id,
                              'month': int(month_value),
@@ -478,6 +479,113 @@ class Admin(commands.Cog):
             print('Member is not on the server')
             await ctx.send('Member is not on the server')
 
+    # Move from ctx channel to target channel
+    @commands.guild_only()
+    @has_admin_role_or_higher()
+    @commands.command(name='move_all', aliases=['ma'])
+    async def move_all(self, ctx, voice_channel: discord.VoiceChannel):
+        if ctx.author.voice is None:
+            print('Author not connected to a channel')
+            await ctx.send('Please connect to a voice channel first.')
+        else:
+            await ctx.message.add_reaction('⌛')
+            author_voice_channel = ctx.author.voice.channel
+            guild_voice_channels = ctx.guild.voice_channels
+            for member in author_voice_channel.members:
+                try:
+                    await member.move_to(voice_channel)
+                except discord.Forbidden:
+                    print('You do not have the permission to move members')
+                    await ctx.send('You do not have the permission to move members')
+                    break
+                except discord.HTTPException:
+                    print('The operation failed')
+                    await ctx.send('The operation failed. Please try again.')
+                    break
+                except:
+                    continue
+            await ctx.message.remove_reaction('⌛', self.bot.user)
+            await ctx.message.add_reaction('✅')
+
+    # Move a member to my voice channel
+    @commands.guild_only()
+    @has_admin_role_or_higher()
+    @commands.command(name='move_to_me', aliases=['mtm'])
+    async def move_to_me(self, ctx, member: discord.Member):
+        if ctx.author.voice is None:
+            print('Author not connected to a channel')
+            await ctx.send('Please connect to a voice channel first.')
+        elif member is not None:
+            if member.voice is not None:
+                await ctx.message.add_reaction('⌛')
+                author_voice_channel = ctx.author.voice.channel
+                try:
+                    await member.move_to(author_voice_channel)
+                except discord.Forbidden:
+                    print('You do not have the permission to move members')
+                    await ctx.send('You do not have the permission to move members')
+                except discord.HTTPException:
+                    print('The operation failed')
+                    await ctx.send('The operation failed. Please try again.')
+                await ctx.message.remove_reaction('⌛', self.bot.user)
+                await ctx.message.add_reaction('✅')
+            else:
+                print(f'Member {member.name} is not in a voice channel')
+                await ctx.send(f'Member {member.name} is not in a voice channel')
+        else:
+            print('Member was not found')
+            await ctx.send(f'Member {member} was not found')
+
+    # Move a role to a specified voice channel
+    @commands.guild_only()
+    @has_admin_role_or_higher()
+    @commands.command(name='move_role', aliases=['mr'])
+    async def move_role(self, ctx, role: discord.Role, voice_channel: discord.VoiceChannel,
+                        *voice_channels_to_ignore: discord.VoiceChannel):
+        if voice_channels_to_ignore:
+            await ctx.message.add_reaction('⌛')
+            voice_channels = ctx.guild.voice_channels
+            for v_channel in voice_channels:
+                if v_channel not in voice_channels_to_ignore:
+                    for member in v_channel.members:
+                        if role in member.roles:
+                            try:
+                                await member.move_to(voice_channel)
+                            except discord.Forbidden:
+                                print('You do not have the permission to move members')
+                                await ctx.send('You do not have the permission to move members')
+                                break
+                            except discord.HTTPException:
+                                print('The operation failed')
+                                await ctx.send('The operation failed. Please try again.')
+                                break
+                            except:
+                                continue
+                else:
+                    print(f'Ignoring channel: {v_channel.name}')
+            await ctx.message.remove_reaction('⌛', self.bot.user)
+            await ctx.message.add_reaction('✅')
+        else:
+            await ctx.message.add_reaction('⌛')
+            voice_channels = ctx.guild.voice_channels
+            for v_channel in voice_channels:
+                for member in v_channel.members:
+                    if role in member.roles:
+                        try:
+                            await member.move_to(voice_channel)
+                        except discord.Forbidden:
+                            print('You do not have the permission to move members')
+                            await ctx.send('You do not have the permission to move members')
+                            break
+                        except discord.HTTPException:
+                            print('The operation failed')
+                            await ctx.send('The operation failed. Please try again.')
+                            break
+                        except:
+                            continue
+            await ctx.message.remove_reaction('⌛', self.bot.user)
+            await ctx.message.add_reaction('✅')
+
     # Write temporary role in tempRoles.json
     def write_temp_roles(self, guild_id, temp_role_data):
         with open(self.path + str(guild_id) + '/' + self.temp_roles_config_file, 'w') as temp_role_list:
@@ -549,7 +657,8 @@ class Admin(commands.Cog):
             return False
 
     # Checks add_task() param
-    async def check_add_task_params(self, ctx, task_name, message, text_channel_name, month_value, day_value, hours_value,
+    async def check_add_task_params(self, ctx, task_name, message, text_channel_name, month_value, day_value,
+                                    hours_value,
                                     minutes_value,
                                     text_channels, voice_channels, voice_channel_name=None):
         try:
