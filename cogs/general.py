@@ -144,6 +144,7 @@ class General(commands.Cog):
                        "- Added move_all command\n"
                        "- Added move_to_me command\n"
                        "- Added move_role command\n"
+                       "- Max allowed tasks per server is now 10 (was 5)\n"
                        "\n"
                        "As the bot keeps evolving in the future, so will the current and new features.\n")
 
