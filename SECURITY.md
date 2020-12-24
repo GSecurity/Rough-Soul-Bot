@@ -9,4 +9,5 @@
 
 ## Reporting a Vulnerability
 
-To report a vulnerability, please contact [GSecurity](https://github.com/GSecurity) on Github or join the [Bot's discord](https://discord.roughsoul.community) and contact Jaiseck (Jaiseck#0001)
+To report a vulnerability, please contact [GSecurity](https://github.com/GSecurity) on Github or join the [Bot's discord](https://discord.roughsoul.community) and contact any from the Owner or Mods role.
+You shouldd receive an answer within 24h.
