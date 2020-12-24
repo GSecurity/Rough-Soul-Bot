@@ -314,7 +314,7 @@ class Admin(commands.Cog):
                         await ctx.send('Something went wrong! text/voice channel IDs shouldn\'t be empty! '
                                        'Try again.')
                 else:
-                    if len(tasks_data) == 5:
+                    if len(tasks_data) == 10:
                         await ctx.send('You already have the maximum allowed number of tasks.')
                         raise admins.MaxTasksReachedException()
                     # text_channel.id
@@ -494,14 +494,17 @@ class Admin(commands.Cog):
             for member in author_voice_channel.members:
                 try:
                     await member.move_to(voice_channel)
+                    # It should be noted that the gateway has a strict rate limit of 120 requests per 60 seconds.
+                    # Even so, with a sleep of 0.5, it seems that it'll trigger that limit. so sleep should be >= 0.6
+                    await asyncio.sleep(0.6)
                 except discord.Forbidden:
                     print('You do not have the permission to move members')
                     await ctx.send('You do not have the permission to move members')
                     break
                 except discord.HTTPException:
                     print('The operation failed')
-                    await ctx.send('The operation failed. Please try again.')
-                    break
+                    # await ctx.send('The operation failed. Please try again.')
+                    continue
                 except:
                     continue
             await ctx.message.remove_reaction('⌛', self.bot.user)
