@@ -15,6 +15,13 @@ class Owner(commands.Cog):
     async def test_message(self, ctx, message):
         await ctx.send(message)
 
+    # Change name of the bot
+    @commands.command(name='rename', hidden=True)
+    @commands.is_owner()
+    async def rename(self, ctx, name):
+        await self.bot.user.edit(username=name)
+        await ctx.send('I changed my name!')
+
     # Change the Bot avatar
     @commands.command(hidden=True)
     @commands.is_owner()
