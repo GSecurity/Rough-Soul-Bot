@@ -39,8 +39,11 @@ class Tasks(commands.Cog):
                 coro = vc.disconnect()
                 fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
                 try:
+                    print('Done playing, disconnecting...')
                     fut.result()
+                    print('Disconnected')
                 except:
+                    print('Could not disconnect...')
                     pass
 
 
